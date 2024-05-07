@@ -1,0 +1,11 @@
+New Reference Material
+1. Open your web browser and go to the Microsoft Account sign up page by visiting this link: https://signup.live.com/ or you can directly visit www.outlook.com and click on "Sign Up" in the top right corner of the screen.
+2. On the sign-up page, enter your preferred email address (this will be your new Microsoft Outlook account). Make sure it's unique and easy to remember.
+3. Create a strong password that you can easily remember but is difficult for others to guess. You should include a mix of uppercase and lowercase letters, numbers, and symbols if possible. Enter this password in the "Password" field.
+4. Re-enter your password in the "Confirm Password" field to ensure it's correct.
+5. Fill out your personal information: First name, Last name, Country or region, Birthdate, and Gender. This information will be used for account recovery purposes if needed.
+6. Choose a security question from the drop-down menu and enter the answer in the "Security Information" field. This helps to verify your identity in case you forget your password.
+7. Review the Microsoft Services & Software License Agreement, Terms of Use, Privacy Statement, and Copyright Disclaimer. If you agree with these terms, check the box next to "I have read and agree to the privacy statement".
+8. Click on the "Create Account" button at the bottom right corner of the page. This will create your new Microsoft Outlook account using the information you provided.
+9. You'll be redirected to a welcome screen where you can start setting up your new email account by adding contacts, configuring settings, and more.
+10. If prompted, follow any additional steps required for two-factor authentication or other security measures. This will help protect your account from unauthorized access.
