@@ -1,0 +1,9 @@
+User Guide: Creating a New Microsoft Outlook Account
+
+1. Access the Outlook sign-in page by using your preferred email client or web browser and visiting www.outlook.com.
+2. Click on the "Create Account" option located at the bottom of the sign-in form.
+3. Fill out the account creation form with your desired email address, password (ensure it's unique), personal information, security question, and accept the Microsoft Terms & Privacy Agreement by checking the corresponding box.
+4. Click on "Create Account" to initiate the process of creating a new Microsoft Outlook account.
+5. Check your email inbox for the confirmation email containing an activation link; click it upon receipt.
+6. After activating your account, log in and customize settings using www.outlook.com or through compatible email clients with POP3/IMAP access to complete setup tasks such as adding contacts, configuring preferences, etc.
+7. Comply with any additional security measures like two-factor authentication if required for enhanced protection of your account.
