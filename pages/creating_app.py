@@ -65,7 +65,7 @@ def main():
         st.subheader("Download the Updated User Guide")
 
         # Create .txt file
-        with open("updated_guide.txt", "w") as f:
+        with open("new_guide.txt", "w") as f:
             # Write from generated text
             f.write(updated_guide)
 
