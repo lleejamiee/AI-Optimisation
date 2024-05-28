@@ -1,0 +1,11 @@
+Outdated User Guide
+1. Open your computer's email client or visit the web browser and navigate to www.hotmail.com (now known as Outlook). This will take you to the sign-in page for existing accounts.
+2. Locate the "Create Account" link at the bottom of the sign-in form, usually in small text. Click on it to proceed with creating a new account.
+3. In the popup window that appears, enter your desired email address and password. Make sure to choose an easy-to-remember but unique combination.
+4. Fill out your personal information: First name, Last name, Country or region, Birthdate, and Gender. This will be used for account recovery purposes if needed.
+5. Choose a security question from the drop-down menu and enter the answer in the provided field. This helps to verify your identity in case you forget your password.
+6. Review the Microsoft Services & Software License Agreement, Terms of Use, Privacy Statement, and Copyright Disclaimer. If you agree with these terms, check the box next to "I have read and agree to the privacy statement".
+7. Click on the "Create Account" button at the bottom right corner of the window. This will create your new Microsoft Outlook account using the information you provided.
+8. You'll receive a confirmation email with a link to activate your newly created account. Open your email client or check your inbox for this message, and click on the activation link.
+9. Once you've activated your account, you can start setting up your new email address by adding contacts, configuring settings, and more through the web interface at www.outlook.com or using an email client with POP3/IMAP access.
+10. If prompted, follow any additional steps required for two-factor authentication or other security measures. This will help protect your account from unauthorized access.
