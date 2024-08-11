@@ -1,7 +1,5 @@
-import requests
-from openai import OpenAI
-import streamlit as st
 from utilities.text_processor import TextProcessor
+import streamlit as st
 
 # Prompt for LLM
 prompt = """
@@ -16,14 +14,14 @@ Document 2: Reference Material
 """
 
 def main():
-    st.set_page_config(page_title="User Guide Updater")
+    st.set_page_config(page_title="User Guide Creator", layout="wide")
 
     # Set app header
     st.header("Create a user guide")
 
     # Upload both outdated user guide and reference material
-    outdated_guide_file = st.file_uploader("Choose the outdated user guide document", type=["txt", "pdf", "docx"])
-    reference_material_file = st.file_uploader("Choose the reference material document", type=["txt", "pdf", "docx"])
+    outdated_guide_file = st.file_uploader("Choose the outdated user guide document", type=["txt", "pdf", "docx", "pptx"])
+    reference_material_file = st.file_uploader("Choose the reference material document", type=["txt", "pdf", "docx", "pptx"])
     webpage_link = st.text_input("Input webpage link")
 
     if 'generated_text' not in st.session_state:
@@ -35,16 +33,16 @@ def main():
 
             if reference_material_file or webpage_link is not None:
                 if reference_material_file:
-                    outdated_guide_text, reference_material_text = TextProcessor.read_files(outdated_guide_file, reference_material_file)
-                    st.session_state.generated_text = TextProcessor.generate_text(prompt, outdated_guide_text,
-                                                                                  reference_material_text)
+                    st.session_state.outdated_guide_text, st.session_state.reference_material_text = TextProcessor.read_files(outdated_guide_file, reference_material_file)
+                    st.session_state.generated_text = TextProcessor.generate_text(prompt, st.session_state.outdated_guide_text,
+                                                                                  st.session_state.reference_material_text)
                     #st.write(reference_material_text)
 
                 if webpage_link:
-                    outdated_guide_text = TextProcessor.extract_text(outdated_guide_file)
-                    reference_material_text = TextProcessor.extract_url_text(webpage_link)
-                    st.session_state.generated_text = TextProcessor.generate_text(prompt, outdated_guide_text,
-                                                                                  reference_material_text)
+                    st.session_state.outdated_guide_text = TextProcessor.extract_text(outdated_guide_file)
+                    st.session_state.reference_material_text = TextProcessor.extract_url_text(webpage_link)
+                    st.session_state.generated_text = TextProcessor.generate_text(prompt, st.session_state.outdated_guide_text,
+                                                                                  st.session_state.reference_material_text)
                     #st.write(reference_material_text)
 
             else:
@@ -60,18 +58,26 @@ def main():
         if 'edit_mode' not in st.session_state:
             st.session_state.edit_mode = False
 
+        outdated_guide_compared, updated_guide_compared = TextProcessor.compare_texts(st.session_state.outdated_guide_text,
+                                                                        st.session_state.generated_text)
+
         if st.session_state.edit_mode:
-            TextProcessor.edit_output(st.session_state.generated_text)
+            TextProcessor.edit_output(updated_guide_compared)
         else:
-            TextProcessor.display_output(st.session_state.generated_text)
+            TextProcessor.display_output(outdated_guide_compared, updated_guide_compared)
 
         def regenerate_guide():
-            st.session_state.generated_text = TextProcessor.generate_text(prompt, outdated_guide_text, reference_material_text)
+            st.session_state.generated_text = TextProcessor.generate_text(prompt, st.session_state.outdated_guide_text, st.session_state.reference_material_text)
 
         st.button("Re-Generate", on_click=regenerate_guide)
+
+        TextProcessor.select_version()
+
         st.subheader("Download the Updated User Guide")
 
-        # Allow app user to download .docx file(updated user guide file) containing generated text
+        st.selectbox("Export As...",
+                     ("DOCX", "TXT", "PDF", "PPT", "MP4"))
+
         st.download_button(
             "Download",
             file_name="updated_guide.txt",
