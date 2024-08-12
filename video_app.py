@@ -52,8 +52,8 @@ if file is not None:
     result = client.predict(
         text=tts_script,
         voice="en-US-AvaNeural - en-US (Female)",
-        rate=0,
-        pitch=0,
+        rate=1,
+        pitch=4,
         api_name="/predict"
     )
     print(result)
