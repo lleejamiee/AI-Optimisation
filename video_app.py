@@ -1,19 +1,31 @@
+import os
+from dotenv import load_dotenv
 import streamlit as st
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import OpenAI
+from langchain_openai import OpenAI, AzureChatOpenAI
 from gradio_client import Client
-from prompts import tts_prompt_v2
+from prompts import *
+
+load_dotenv()
 
 # LLM
-client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
-llm = client
+llm = AzureChatOpenAI(
+    deployment_name=os.getenv("DEPLOYMENT_NAME"),
+    openai_api_version="2024-06-01",
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    temperature=0.7
+)
 
 # Prompt template(s)
-tts_template = PromptTemplate.from_template(
-    tts_prompt_v2)  # Prompt template, generating a script from the updated material
+user_prompt = tts_prompt_v5 # Updated prompt v4
+full_prompt = f"{system_prompt_v2}\n\n{user_prompt}\n\n{{guide}}"
 
+tts_template = PromptTemplate.from_template(full_prompt)
+
+# Chains - only script_chain for now
 script_chain = (
         {"guide": RunnablePassthrough()}
         | tts_template
