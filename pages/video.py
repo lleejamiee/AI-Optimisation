@@ -4,9 +4,9 @@ import streamlit as st
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import OpenAI, AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from gradio_client import Client
-from prompts import *
+from utilities.prompts import *
 
 load_dotenv()
 

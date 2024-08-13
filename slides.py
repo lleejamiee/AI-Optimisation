@@ -22,7 +22,7 @@ query_json = """{
     "input_text": "[[content]]",
     "output_format": "json",
     "json_structure": {
-    "slides": "{{presentation_slides}}"
+    "slide.py": "{{presentation_slides}}"
     }
 }"""
 
@@ -61,11 +61,11 @@ print(response_content)
 json_rsp = json.loads(response_content)
 
 
-slide_data = json_rsp.get("slides")
+slide_data = json_rsp.get("slide.py")
 
 prs = Presentation()
 
-# Create slides
+# Create slide.py
 for slide in slide_data:
     slide_layout = prs.slide_layouts[1]
     new_slide = prs.slides.add_slide(slide_layout)

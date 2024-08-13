@@ -1,28 +1,27 @@
-from utilities.text_processor import TextProcessor
+from utilities.document_processor import TextProcessor
 import streamlit as st
 
 # Prompt for LLM
 prompt = """
-You are a technical writer tasked with updating an outdated user guide for a product/service. 
-Your task is to update an outdated user guide by incorporating relevant information from the provided reference material.
-Only generate the content that is to be used in this updated user guide.
+You are a technical writer tasked with creating a user guide for a product/service. 
+Your task is to create a user guide by incorporating relevant information from the provided outdated user guide, and the reference material.
+Only generate the content that is to be used in this new user guide.
 Do not provide explanations or notes.
 
-The user will input two text documents
+The user will input one text document
 Document 1: Outdated User Guide
 Document 2: Reference Material
 """
 
-
 def main():
-    st.set_page_config(page_title="User Guide Updator", layout="wide")
+    st.set_page_config(page_title="Update PowerPoint", layout="wide")
 
     # Set app header
-    st.header("Update a user guide")
+    st.header("Update PowerPoint")
 
     # Upload both outdated user guide and reference material
-    outdated_guide_file = st.file_uploader("Choose the outdated user guide document", type=["txt", "pdf", "docx"])
-    reference_material_file = st.file_uploader("Choose the reference material document", type=["txt", "pdf", "docx"])
+    outdated_guide_file = st.file_uploader("Choose the outdated user guide document", type=["pptx"])
+    reference_material_file = st.file_uploader("Choose the reference material document", type=["txt", "pdf", "docx", "pptx"])
     webpage_link = st.text_input("Input webpage link")
 
     if 'generated_text' not in st.session_state:
@@ -52,9 +51,10 @@ def main():
         else:
             st.error("Please upload outdated material.")
 
-    st.subheader("Updated User Guide Content")
+
 
     if st.session_state.generated_text:
+        st.subheader("Updated User Guide Content")
 
         if 'edit_mode' not in st.session_state:
             st.session_state.edit_mode = False

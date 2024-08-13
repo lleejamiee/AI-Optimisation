@@ -1,0 +1,13 @@
+openai
+certifi
+urllib3
+requests
+docx2txt
+streamlit
+pdfplumber
+python-pptx
+python-dotenv
+gradio-client
+langchain-core
+beautifulsoup4
+langchain-openai

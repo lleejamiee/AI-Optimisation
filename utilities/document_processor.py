@@ -4,7 +4,6 @@ from pptx import Presentation
 from bs4 import BeautifulSoup
 from html import unescape
 from openai import OpenAI
-from io import BytesIO
 import streamlit as st
 import pdfplumber
 import requests
@@ -80,7 +79,6 @@ class TextProcessor:
                 for shape in slide.shapes:
                     if hasattr(shape, "text"):
                         file_text += shape.text + "\n"
-            st.write(file_text)
 
         return file_text
 
