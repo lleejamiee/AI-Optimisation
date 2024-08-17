@@ -21,15 +21,11 @@ def main():
     st.header("Update a Document")
 
     # Upload both outdated user guide and reference material
-    outdated_guide_file = st.file_uploader(
-        "Choose the outdated user guide document", type=["txt", "pdf", "docx"]
-    )
-    reference_material_file = st.file_uploader(
-        "Choose the reference material document", type=["txt", "pdf", "docx", "pptx"]
-    )
+    outdated_guide_file = st.file_uploader("Choose the outdated user guide document", type=["txt", "pdf", "docx"])
+    reference_material_file = st.file_uploader("Choose the reference material document", type=["txt", "pdf", "docx", "pptx"])
     webpage_link = st.text_input("Input webpage link")
 
-    if "generated_text" not in st.session_state:
+    if 'generated_text' not in st.session_state:
         st.session_state.generated_text = None
 
     if st.button("Generate Updated Guide"):
@@ -38,32 +34,18 @@ def main():
 
             if reference_material_file or webpage_link is not None:
                 if reference_material_file:
-                    (
-                        st.session_state.outdated_guide_text,
-                        st.session_state.reference_material_text,
-                    ) = DocumentProcessor.read_files(
-                        outdated_guide_file, reference_material_file
-                    )
-                    st.session_state.generated_text = DocumentProcessor.generate_text(
-                        prompt,
-                        st.session_state.outdated_guide_text,
-                        st.session_state.reference_material_text,
-                    )
-                    # st.write(reference_material_text)
+                    st.session_state.outdated_guide_text, st.session_state.reference_material_text = (
+                        DocumentProcessor.read_files(outdated_guide_file, reference_material_file))
+                    st.session_state.generated_text = DocumentProcessor.generate_text(prompt,
+                                                                                      st.session_state.outdated_guide_text,
+                                                                                      st.session_state.reference_material_text)
 
                 if webpage_link:
-                    st.session_state.outdated_guide_text = (
-                        DocumentProcessor.extract_text(outdated_guide_file)
-                    )
-                    st.session_state.reference_material_text = (
-                        DocumentProcessor.extract_url_text(webpage_link)
-                    )
-                    st.session_state.generated_text = DocumentProcessor.generate_text(
-                        prompt,
-                        st.session_state.outdated_guide_text,
-                        st.session_state.reference_material_text,
-                    )
-                    # st.write(reference_material_text)
+                    st.session_state.outdated_guide_text = DocumentProcessor.extract_text(outdated_guide_file)
+                    st.session_state.reference_material_text = DocumentProcessor.extract_url_text(webpage_link)
+                    st.session_state.generated_text = DocumentProcessor.generate_text(prompt,
+                                                                                      st.session_state.outdated_guide_text,
+                                                                                      st.session_state.reference_material_text)
             else:
                 st.error("Please upload either reference material or webpage link.")
 
@@ -76,25 +58,18 @@ def main():
         if "edit_mode" not in st.session_state:
             st.session_state.edit_mode = False
 
-        outdated_guide_compared, updated_guide_compared = (
-            DocumentProcessor.compare_texts(
-                st.session_state.outdated_guide_text, st.session_state.generated_text
-            )
-        )
+        outdated_guide_compared, updated_guide_compared = DocumentProcessor.compare_texts(
+            st.session_state.outdated_guide_text, st.session_state.generated_text)
 
         if st.session_state.edit_mode:
             DocumentProcessor.edit_output(updated_guide_compared)
         else:
-            DocumentProcessor.display_output(
-                outdated_guide_compared, updated_guide_compared
-            )
+            DocumentProcessor.display_output(outdated_guide_compared, updated_guide_compared)
 
         def regenerate_guide():
-            st.session_state.generated_text = DocumentProcessor.generate_text(
-                prompt,
-                st.session_state.outdated_guide_text,
-                st.session_state.reference_material_text,
-            )
+            st.session_state.generated_text = DocumentProcessor.generate_text(prompt,
+                                                                              st.session_state.outdated_guide_text,
+                                                                              st.session_state.reference_material_text)
 
         st.button("Re-Generate", on_click=regenerate_guide)
 
@@ -108,7 +83,7 @@ def main():
         st.download_button(
             "Download",
             file_name="updated_guide.txt",
-            data=st.session_state.generated_text,
+            data=st.session_state.generated_text
         )
 
 
