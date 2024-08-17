@@ -3,7 +3,6 @@ from openai import AzureOpenAI
 from pptx import Presentation
 from bs4 import BeautifulSoup
 from html import unescape
-from openai import OpenAI
 import streamlit as st
 import pdfplumber
 import requests
@@ -12,47 +11,48 @@ import difflib
 import certifi
 import ssl
 import re
+import os
+from dotenv import load_dotenv
 
-class TextProcessor:
-    AOAI_ENDPOINT = "https://hackathon-open-ai.openai.azure.com/"
-    AOAI_KEY = "7c8a02d5da12414eaa73dc4d216515ac"
-    MODEL_NAME = "hackathon-GPT-4"
+load_dotenv()
 
-    #Initialize OpenAI client with local inference server (LM Studio)
+
+class DocumentProcessor:
+    AOAI_ENDPOINT = os.getenv("AOAI_ENDPOINT")
+    AOAI_KEY = os.getenv("AOAI_KEY")
+    MODEL_NAME = os.getenv("DEPLOYMENT_NAME")
+
+    # Initialize OpenAI client with local inference server (LM Studio)
     client = AzureOpenAI(
         api_key=AOAI_KEY,
         azure_endpoint=AOAI_ENDPOINT,
         api_version="2024-05-01-preview",
     )
-    # client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
 
     def generate_text(prompt, outdated_guide, reference_material):
         history = [
-            {"role": "system",
-             "content": prompt},
-            {"role": "user",
-             "content": f"Outdated User Guide:\n{outdated_guide}\n\nReference Material:\n{reference_material}"}
+            {"role": "system", "content": prompt},
+            {
+                "role": "user",
+                "content": f"Outdated User Guide:\n{outdated_guide}\n\nReference Material:\n{reference_material}",
+            },
         ]
 
-        completion = TextProcessor.client.chat.completions.create(
-            model=TextProcessor.MODEL_NAME,
+        completion = DocumentProcessor.client.chat.completions.create(
+            model=DocumentProcessor.MODEL_NAME,
             messages=history,
             temperature=0.7,
-            stream=True
+            stream=True,
         )
-
-        # completion = TextProcessor.client.chat.completions.create(
-        #     model="microsoft/Phi-3-mini-4k-instruct-gguf",
-        #     messages=[
-        #         {"role": "system", "content": "Always answer in rhymes."},
-        #         {"role": "user", "content": "Introduce yourself."}
-        #     ],
-        #     temperature=0.7,
-        # )
 
         generated_text = ""
         for chunk in completion:
-            if chunk.choices and chunk.choices[0] and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            if (
+                chunk.choices
+                and chunk.choices[0]
+                and chunk.choices[0].delta
+                and chunk.choices[0].delta.content
+            ):
                 generated_text += chunk.choices[0].delta.content
 
         return generated_text
@@ -67,9 +67,15 @@ class TextProcessor:
                     file_text = pages.extract_text()
             except:
                 return
-        elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        elif (
+            file.type
+            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ):
             file_text = docx2txt.process(file)
-        elif file.type == "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        elif (
+            file.type
+            == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        ):
             presentation = Presentation(file)
             file_text = ""
 
@@ -84,15 +90,20 @@ class TextProcessor:
 
     def extract_url_text(url):
         try:
-            resp = urlopen(url, context=ssl.create_default_context(cafile=certifi.where()))
+            resp = urlopen(
+                url, context=ssl.create_default_context(cafile=certifi.where())
+            )
             context = ssl._create_unverified_context()
             response = urlopen(url, context=context)
-            html = (response.read())
+            html = response.read()
 
             soup = BeautifulSoup(html, "html.parser")
             title = soup.title.string
 
-            headings = [h.get_text() for h in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6", "p"])]
+            headings = [
+                h.get_text()
+                for h in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6", "p"])
+            ]
 
             content = " ".join(headings)
 
@@ -116,8 +127,13 @@ class TextProcessor:
 
     def read_files(outdated_guide_file, reference_material_file):
         if outdated_guide_file is not None and reference_material_file is not None:
-            outdated_guide_text = TextProcessor.extract_text(outdated_guide_file)
-            reference_material_text = TextProcessor.extract_text(reference_material_file)
+            outdated_guide_text = DocumentProcessor.extract_text(outdated_guide_file)
+            reference_material_text = DocumentProcessor.extract_text(
+                reference_material_file
+            )
+
+            st.write(outdated_guide_text)
+            st.write(reference_material_text)
 
             return outdated_guide_text, reference_material_text
         else:
@@ -126,8 +142,12 @@ class TextProcessor:
 
     def edit_output(updated_guide):
         # Display the text area for editing
-        edited_text = st.text_area("Edit the content", height=800, value=st.session_state.generated_text,
-                                   key="edit_area")
+        edited_text = st.text_area(
+            "Edit the content",
+            height=800,
+            value=st.session_state.generated_text,
+            key="edit_area",
+        )
 
         # Save the changes
         if st.button("Save Changes"):
@@ -160,7 +180,7 @@ class TextProcessor:
 
     def strip_html_tags(text):
         # Remove HTML tags
-        clean_text = re.sub(r'<[^>]+>', '', text)
+        clean_text = re.sub(r"<[^>]+>", "", text)
         # Unescape HTML entities
         clean_text = unescape(clean_text)
         return clean_text
@@ -176,14 +196,18 @@ class TextProcessor:
         text2_output = []
 
         for line in diff:
-            if line.startswith('  '):  # Unchanged line
+            if line.startswith("  "):  # Unchanged line
                 text1_output.append(line[2:].rstrip())
                 text2_output.append(line[2:].rstrip())
-            elif line.startswith('- '):  # Line only in text1
-                text1_output.append(f'<span style="color: #FFCCCB;">{line[2:].rstrip()}</span>')
-            elif line.startswith('+ '):  # Line only in text2
-                text2_output.append(f'<span style="color: #90EE90;">{line[2:].rstrip()}</span>')
-            elif line.startswith('? '):  # Hint line, ignore
+            elif line.startswith("- "):  # Line only in text1
+                text1_output.append(
+                    f'<span style="color: #FFCCCB;">{line[2:].rstrip()}</span>'
+                )
+            elif line.startswith("+ "):  # Line only in text2
+                text2_output.append(
+                    f'<span style="color: #90EE90;">{line[2:].rstrip()}</span>'
+                )
+            elif line.startswith("? "):  # Hint line, ignore
                 continue
 
         return text1_output, text2_output
@@ -192,7 +216,9 @@ class TextProcessor:
         department, roles = st.columns(2)
 
         with department:
-            option = st.selectbox("Choose a department", ("ICT", "HR", "Marketing"), index=None)
+            option = st.selectbox(
+                "Choose a department", ("ICT", "HR", "Marketing"), index=None
+            )
 
         if option:
             with roles:

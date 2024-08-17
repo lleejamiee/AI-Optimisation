@@ -3,5 +3,6 @@ import streamlit as st
 st.set_page_config(page_title="Home")
 st.header("Select an option")
 
-st.page_link("pages/create.py", label="Create")
-st.page_link("pages/update.py", label="Update")
+st.page_link("pages/document.py", label="Document")
+st.page_link("pages/slide.py", label="Slide")
+st.page_link("pages/video.py", label="Video")
