@@ -1,7 +1,8 @@
-from utilities.document_processor import DocumentProcessor
+from io import BytesIO
 import streamlit as st
-
+from pptx import Presentation
 from utilities.slide_processor import SlideProcessor
+from utilities.document_processor import DocumentProcessor
 
 query_json = """{
     "input_text": "[[content]]",
@@ -45,12 +46,12 @@ def main():
                 if reference_material_file:
                     st.session_state.outdated_guide_text, st.session_state.reference_material_text = (
                         DocumentProcessor.read_files(outdated_guide_file, reference_material_file))
-                    st.session_state.generated_text = SlideProcessor.generate_presentation(st.session_state.outdated_guide_text, st.session_state.reference_material_text)
+                    st.session_state.generated_text = SlideProcessor.generate_presentation_content(st.session_state.outdated_guide_text, st.session_state.reference_material_text)
 
                 if webpage_link:
                     st.session_state.outdated_guide_text = DocumentProcessor.extract_text(outdated_guide_file)
                     st.session_state.reference_material_text = DocumentProcessor.extract_url_text(webpage_link)
-                    st.session_state.generated_text = SlideProcessor.generate_presentation(st.session_state.outdated_guide_text, st.session_state.reference_material_text)
+                    st.session_state.generated_text = SlideProcessor.generate_presentation_content(st.session_state.outdated_guide_text, st.session_state.reference_material_text)
             else:
                 st.error("Please upload either reference material or webpage link.")
 
@@ -72,13 +73,18 @@ def main():
             DocumentProcessor.display_output(outdated_guide_compared, updated_guide_compared)
 
         def regenerate_guide():
-            st.session_state.generated_text = DocumentProcessor.generate_text(prompt,
-                                                                              st.session_state.outdated_guide_text,
-                                                                              st.session_state.reference_material_text)
+            st.session_state.generated_text = SlideProcessor.generate_presentation_content(st.session_state.outdated_guide_text, st.session_state.reference_material_text)
 
         st.button("Re-Generate", on_click=regenerate_guide)
 
         # TextProcessor.select_version()
+
+        # outdated_guide_slide = Presentation(outdated_guide_file)
+        # formatting_data = [SlideProcessor.extract_formatting(slide) for slide in outdated_guide_slide.slides]
+        # slide_data = SlideProcessor.generate_presentation(st.session_state.generated_text, formatting_data)
+        slide_data = SlideProcessor.create_slides(st.session_state.generated_text)
+        binary_output = BytesIO()
+        slide_data.save(binary_output)
 
         st.subheader("Download the Updated User Guide")
 
@@ -87,8 +93,9 @@ def main():
 
         st.download_button(
             "Download",
-            file_name="updated_guide.txt",
-            data=st.session_state.generated_text
+            file_name="updated_guide.pptx",
+            data=binary_output,
+            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
         )
 
 

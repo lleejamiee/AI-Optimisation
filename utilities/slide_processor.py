@@ -1,9 +1,11 @@
 import os
+import io
 import json
+import pptx.dml.color
 from pptx.util import Pt
 from pptx import Presentation
 from openai import AzureOpenAI
-
+from pptx.dml.color import RGBColor, _NoneColor
 
 class SlideProcessor:
     client = AzureOpenAI(
@@ -16,8 +18,7 @@ class SlideProcessor:
         "input_text": "[[content]]",
         "output_format": "json",
         "json_structure": {
-        "generated_slides": "{{presentation_slides}}"
-        }
+        "generated_slides": [{"header": {header_content}, "content": {content}}]
     }"""
 
     system_prompt = """
@@ -26,9 +27,11 @@ class SlideProcessor:
     Document 1: Outdated User Guide
     Document 2: Reference Material
     Based on the input documents, your task is to update an outdated user guide slides by incorporating relevant information from the provided reference material. Generate only the JSON data required by the user and nothing else.
-    Do not include any additional text or explanations. Each slide should have a {{header}}, {{content}}. Return only the JSON data as specified below.
+    Do not include any additional text or explanations. Each slide should only have a {{header}}, {{content}} and wrapped in list name generated_slides. Return only the JSON data as specified below. Do not include any additional text or explanations. 
     """
     prompt = query_json.replace("[[content]]", system_prompt)
+
+    from pptx.dml.color import RGBColor
 
     def extract_formatting(slide):
         formatting_info = []
@@ -36,17 +39,22 @@ class SlideProcessor:
             if hasattr(shape, "text_frame"):
                 for paragraph in shape.text_frame.paragraphs:
                     for run in paragraph.runs:
+                        font_color_rgb = RGBColor(0, 0, 0)
+
+                        if run.font.color.rgb is not isinstance(run.font.color.rgb, _NoneColor):
+                            font_color_rgb = run.font.color.rgb
+
                         formatting_info.append({
                             "text": run.text,
                             "font_size": run.font.size.pt if run.font.size else None,
                             "font_bold": run.font.bold,
                             "font_italic": run.font.italic,
                             "font_name": run.font.name,
-                            "font_color": run.font.color.rgb if run.font.color else None,
+                            "font_color": font_color_rgb,
                         })
         return formatting_info
 
-    def generate_presentation(outdated_guide, reference_material):
+    def generate_presentation_content(outdated_guide, reference_material):
         completion = SlideProcessor.client.chat.completions.create(
             model=os.getenv("DEPLOYMENT_NAME"),
             messages=[
@@ -59,15 +67,18 @@ class SlideProcessor:
         )
 
         response_content = completion.choices[0].message.content
-        # json_rsp = json.loads(response_content)
-        # slide_data = json_rsp.get("generated_slides")
 
         return response_content
 
-    def create_slides(slide_data, formatting_info):
+    @staticmethod
+    def create_slides(response_content):
         prs = Presentation()
 
-        for slide, formatting in zip(slide_data, formatting_info):
+        json_rsp = json.loads(response_content)
+        slide_data = json_rsp.get("generated_slides")
+        print(slide_data)
+
+        for slide in slide_data:
             slide_layout = prs.slide_layouts[1]
             new_slide = prs.slides.add_slide(slide_layout)
 
@@ -76,25 +87,22 @@ class SlideProcessor:
                 title.text = slide['header']
 
             if slide['content']:
-                body_shape = new_slide.shapes.placeholders[1]
-                text_frame = body_shape.text_frame
+                shapes = new_slide.shapes
+                body_shape = shapes.placeholders[1]
+                tf = body_shape.text_frame
 
-                for content, format_info in zip(slide['content'], formatting):
-                    p = text_frame.add_paragraph()
-                    run = p.add_run()
-                    run.text = content
+                content = slide['content']
+                if isinstance(content, list):
+                    content = " ".join(content)
 
-                    if format_info.get('font_size'):
-                        run.font.size = Pt(format_info['font_size'])
-                    if format_info.get('font_bold'):
-                        run.font.bold = format_info['font_bold']
-                    if format_info.get('font_italic'):
-                        run.font.italic = format_info['font_italic']
-                    if format_info.get('font_name'):
-                        run.font.name = format_info['font_name']
-                    if format_info.get('font_color'):
-                        run.font.color.rgb = format_info['font_color']
+                p = tf.add_paragraph()
+                run = p.add_run()
+                run.text = content
+                run.font.size = Pt(18)
+                run.font.bold = True
+                run.font.name = "Calibri"
 
+        return prs
 
     def extract_pptx_to_json(file):
         presentation = Presentation(file)
