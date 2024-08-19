@@ -1,10 +1,20 @@
 from utilities.document_processor import DocumentProcessor
 import streamlit as st
 
+from utilities.slide_processor import SlideProcessor
+
+query_json = """{
+    "input_text": "[[content]]",
+    "output_format": "json",
+    "json_structure": {
+    "slide.py": "{{presentation_slides}}"
+    }
+}"""
+
 # Prompt for LLM
 prompt = """
 You are a technical writer tasked with creating a user guide for a product/service. 
-Your task is to create a user guide by incorporating relevant information from the provided outdated user guide, and the reference material.
+Your task is to update a user guide powerpoint by incorporating relevant information from the provided outdated user guide, and the reference material.
 Only generate the content that is to be used in this new user guide.
 Do not provide explanations or notes.
 
@@ -30,22 +40,17 @@ def main():
 
     if st.button("Generate Updated Guide"):
         if outdated_guide_file is not None:
-            # st.write(outdated_guide_text)
 
             if reference_material_file or webpage_link is not None:
                 if reference_material_file:
                     st.session_state.outdated_guide_text, st.session_state.reference_material_text = (
                         DocumentProcessor.read_files(outdated_guide_file, reference_material_file))
-                    st.session_state.generated_text = DocumentProcessor.generate_text(prompt,
-                                                                                      st.session_state.outdated_guide_text,
-                                                                                      st.session_state.reference_material_text)
+                    st.session_state.generated_text = SlideProcessor.generate_presentation(st.session_state.outdated_guide_text, st.session_state.reference_material_text)
 
                 if webpage_link:
                     st.session_state.outdated_guide_text = DocumentProcessor.extract_text(outdated_guide_file)
                     st.session_state.reference_material_text = DocumentProcessor.extract_url_text(webpage_link)
-                    st.session_state.generated_text = DocumentProcessor.generate_text(prompt,
-                                                                                      st.session_state.outdated_guide_text,
-                                                                                      st.session_state.reference_material_text)
+                    st.session_state.generated_text = SlideProcessor.generate_presentation(st.session_state.outdated_guide_text, st.session_state.reference_material_text)
             else:
                 st.error("Please upload either reference material or webpage link.")
 
