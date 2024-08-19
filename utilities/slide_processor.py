@@ -1,7 +1,5 @@
 import os
-import io
 import json
-import pptx.dml.color
 from pptx.util import Pt
 from pptx import Presentation
 from openai import AzureOpenAI
@@ -31,8 +29,7 @@ class SlideProcessor:
     """
     prompt = query_json.replace("[[content]]", system_prompt)
 
-    from pptx.dml.color import RGBColor
-
+    # TODO: Need to fix the code so _NoneColor error for font colour goes away
     def extract_formatting(slide):
         formatting_info = []
         for shape in slide.shapes:
@@ -70,6 +67,7 @@ class SlideProcessor:
 
         return response_content
 
+    # TODO: Change so the original formatting is kept
     @staticmethod
     def create_slides(response_content):
         prs = Presentation()
@@ -104,6 +102,7 @@ class SlideProcessor:
 
         return prs
 
+    # May not need this
     def extract_pptx_to_json(file):
         presentation = Presentation(file)
         slides_data = []

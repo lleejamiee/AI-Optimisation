@@ -1,6 +1,5 @@
 from io import BytesIO
 import streamlit as st
-from pptx import Presentation
 from utilities.slide_processor import SlideProcessor
 from utilities.document_processor import DocumentProcessor
 
