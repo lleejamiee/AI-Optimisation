@@ -1,0 +1,6 @@
+Reference Material
+•Attach the Smart Cuff: Connect the updated cuff to the monitor using the new easy-connect feature.
+•Power On the Device: Use the USB-C power adapter to connect the monitor to a power source and press the touch-sensitive power button.
+•Automatic Calibration: The device performs automatic calibration upon startup. No manual calibration needed.
+•Measure Blood Pressure: Follow on-screen instructions to place the updated cuff on the patient’s arm and press the “Measure” button.
+
