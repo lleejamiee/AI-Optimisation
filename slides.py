@@ -8,21 +8,23 @@ from pptx.util import Pt
 
 load_dotenv()
 
-client = Groq(
-    api_key=os.environ.get("GROQ_API_KEY"),
-)
-
-# print(chat_completion.choices[0].message.content)
-
 # LLM
-# client = AzureOpenAI(
-#     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-#     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-#     api_version="2024-06-01",
-# )
+client = AzureOpenAI(
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    api_version="2024-06-01",
+)
+model=os.getenv("DEPLOYMENT_NAME")
 
 # Uncomment for LM Studio
-#client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+# client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+# model="lmstudio-community/Meta-Llama-3.1-8B-Instruct-GGUF"
+
+# Uncomment for Groq
+# client = Groq(
+#     api_key=os.environ.get("GROQ_API_KEY"),
+# )
+# model="llama3-8b-8192"
 
 # Prompt setup
 query_json = """{
@@ -53,7 +55,7 @@ prompt = query_json.replace("[[content]]", user_prompt)
 
 # Chat completions API call
 completion = client.chat.completions.create(
-    model="llama3-8b-8192",
+    model=model,
     messages=[
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": prompt}
@@ -66,7 +68,6 @@ print(response_content)
 
 # Parse the response as JSON
 json_rsp = json.loads(response_content)
-
 
 slide_data = json_rsp.get("slides")
 
