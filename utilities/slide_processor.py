@@ -1,10 +1,15 @@
 import os
 import json
 from groq import Groq
+from haystack import Pipeline
 from haystack import Document
-from haystack.components.converters import PPTXToDocument, TextFileToDocument, PyPDFToDocument, DOCXToDocument
+from haystack.components.builders import PromptBuilder
+from haystack.utils import Secret
+from haystack.components.generators import OpenAIGenerator
+from haystack.components.retrievers.in_memory import InMemoryBM25Retriever
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 from pptx.util import Pt
+from utilities.prompts import *
 from pptx import Presentation
 from openai import AzureOpenAI
 from dotenv import load_dotenv
@@ -61,51 +66,42 @@ class SlideProcessor:
                         })
         return formatting_info
 
-    def create_document(file):
-        if file.type == "text/plain":
-            converter = TextFileToDocument()
-            results = converter.run(sources=file)
-            documents = results["documents"]
-            return documents
-
-        elif file.type == "application/pdf":
-            converter = PyPDFToDocument()
-            results = converter.run(sources=file)
-            documents = results["documents"]
-            return documents
-
-        elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            converter = DOCXToDocument()
-            results = converter.run(sources=file)
-            documents = results["documents"]
-            return documents
-
-        elif file.type == "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-            converter = PPTXToDocument()
-            results = converter.run(source=file)
-            documents = results["documents"]
-            return documents
-
     def generate_presentation_content(outdated_guide, reference_material):
-        outdated_document = SlideProcessor.create_document(outdated_guide)
-        reference_document = SlideProcessor.create_document(reference_material)
+        outdated_document = Document(content=outdated_guide)
+        reference_document = Document(content=reference_material)
         docstore = InMemoryDocumentStore()
-        docstore.write_documents([Document(content=outdated_document[0].content), Document(content=reference_document[0].content)])
+        docstore.write_documents([Document(content=outdated_document.content), Document(content=reference_document.content)])
 
-        completion = SlideProcessor.client.chat.completions.create(
-            model=os.getenv("GROQ_MODEL_NAME"),
-            messages=[
-                {"role": "system", "content": SlideProcessor.system_prompt},
-                {
-                    "role": "user",
-                    "content": f"Outdated User Guide:\n{outdated_guide}\n\nReference Material:\n{reference_material}",
-                },
-            ]
-        )
+        template = slides_template
+        query = slides_query
 
-        response_content = completion.choices[0].message.content
+        llm = OpenAIGenerator(api_key=Secret.from_env_var("GROQ_OPENAI_API_KEY"), api_base_url="https://api.groq.com/openai/v1", model=os.getenv("GROQ_MODEL_NAME"), generation_kwargs={"temperature": 0.2})
 
-        return response_content
+        pipe = Pipeline()
+        pipe.add_component("retriever", InMemoryBM25Retriever(document_store=docstore))
+        pipe.add_component("prompt_builder", PromptBuilder(template=template))
+        pipe.add_component("llm", llm)
+        pipe.connect("retriever", "prompt_builder.documents")
+        pipe.connect("prompt_builder", "llm")
+
+        res = pipe.run({"retriever": {"query": query}, "prompt_builder": {"query": query}})
+
+
+        # completion = SlideProcessor.client.chat.completions.create(
+        #     model=os.getenv("GROQ_MODEL_NAME"),
+        #     messages=[
+        #         {"role": "system", "content": SlideProcessor.system_prompt},
+        #         {
+        #             "role": "user",
+        #             "content": f"Outdated User Guide:\n{outdated_guide}\n\nReference Material:\n{reference_material}",
+        #         },
+        #     ]
+        # )
+
+        # response_content = completion.choices[0].message.content
+
+        # Returns the LLM generated response
+        return res['llm']['replies'][0]
 
     # TODO: Change so the original formatting is kept
     @staticmethod
