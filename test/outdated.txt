@@ -1,0 +1,11 @@
+Outdated User Guide
+1.Unbox the Blood Pressure Monitor: Remove the monitor, cuff, power adapter, and user manual from the packaging. Place them on a clean, flat surface.
+2.Read the User Manual: Before setting up, read through the user manual to familiarize yourself with the device and its features.
+3.Attach the Cuff: Secure the cuff to the monitor by plugging it into the designated port on the device.
+4.Power On the Device: Connect the power adapter to the monitor and plug it into a wall outlet. Press the power button to turn on the device.
+5.Calibrate the Monitor: Follow the instructions to calibrate the device, which may involve running a self-test or inputting calibration data.
+6.Select Measurement Mode: Choose between different measurement modes (e.g., manual or automatic) using the device settings menu.
+7.Prepare the Patient: Ensure the patient is seated comfortably with their arm at heart level. Place the cuff around the patient’s upper arm, ensuring it is snug but not too tight.
+8.Take a Measurement: Press the “Start” button to initiate the blood pressure reading. Wait for the monitor to complete the measurement and display the results.
+9.Record Results: Note down the blood pressure reading from the display for patient records.
+
