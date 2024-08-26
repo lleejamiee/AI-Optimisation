@@ -1,16 +1,26 @@
 import os
 import json
+from groq import Groq
+from haystack import Document
+from haystack.components.converters import PPTXToDocument, TextFileToDocument, PyPDFToDocument, DOCXToDocument
+from haystack.document_stores.in_memory import InMemoryDocumentStore
 from pptx.util import Pt
 from pptx import Presentation
 from openai import AzureOpenAI
+from dotenv import load_dotenv
 from pptx.dml.color import RGBColor, _NoneColor
 
+load_dotenv()
+
 class SlideProcessor:
-    client = AzureOpenAI(
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        api_version="2024-06-01"
-    )
+
+    # client = AzureOpenAI(
+    #     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    #     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    #     api_version="2024-06-01"
+    # )
+
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
     query_json = """{
         "input_text": "[[content]]",
@@ -51,9 +61,39 @@ class SlideProcessor:
                         })
         return formatting_info
 
+    def create_document(file):
+        if file.type == "text/plain":
+            converter = TextFileToDocument()
+            results = converter.run(sources=file)
+            documents = results["documents"]
+            return documents
+
+        elif file.type == "application/pdf":
+            converter = PyPDFToDocument()
+            results = converter.run(sources=file)
+            documents = results["documents"]
+            return documents
+
+        elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            converter = DOCXToDocument()
+            results = converter.run(sources=file)
+            documents = results["documents"]
+            return documents
+
+        elif file.type == "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+            converter = PPTXToDocument()
+            results = converter.run(source=file)
+            documents = results["documents"]
+            return documents
+
     def generate_presentation_content(outdated_guide, reference_material):
+        outdated_document = SlideProcessor.create_document(outdated_guide)
+        reference_document = SlideProcessor.create_document(reference_material)
+        docstore = InMemoryDocumentStore()
+        docstore.write_documents([Document(content=outdated_document[0].content), Document(content=reference_document[0].content)])
+
         completion = SlideProcessor.client.chat.completions.create(
-            model=os.getenv("DEPLOYMENT_NAME"),
+            model=os.getenv("GROQ_MODEL_NAME"),
             messages=[
                 {"role": "system", "content": SlideProcessor.system_prompt},
                 {
