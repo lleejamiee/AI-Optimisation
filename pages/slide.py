@@ -39,24 +39,27 @@ def main():
     if st.button("Generate Updated Guide"):
         if outdated_guide_file is not None:
             outdated_path = SlideProcessor.save_uploaded_file(outdated_guide_file)
-            st.session_state.outdated_doc = SlideProcessor.load_document(outdated_path)
+            st.session_state.outdated_node = SlideProcessor.load_document(outdated_path)
 
             if reference_material_file or webpage_link is not None:
                 if reference_material_file:
                     reference_path = SlideProcessor.save_uploaded_file(reference_material_file)
-                    st.session_state.reference_doc = SlideProcessor.load_document(reference_path)
+                    st.session_state.reference_node = SlideProcessor.load_document(reference_path)
 
                 if webpage_link:
-                    st.session_state.reference_doc = SlideProcessor.load_webpage(webpage_link)
+                    st.session_state.reference_node = SlideProcessor.load_webpage(webpage_link)
             else:
                 st.error("Please upload either reference material or webpage link.")
 
         else:
             st.error("Please upload outdated material.")
 
-    if 'outdated_doc' and 'reference_doc' in st.session_state:
+    if 'outdated_node' and 'reference_node' in st.session_state:
         print("I'm here")
-        # s_engine = SlideProcessor.build_query_engine(st.session_state.outdated_doc, st.session_state.reference_doc)
+        s_engine = SlideProcessor.build_query_engine(st.session_state.outdated_doc, st.session_state.reference_doc)
+        query = ("I have a user guide that includes some outdated steps. Your task is to update the entire document, "
+                 "but only change the specific steps that are outdated.  You should refer to the reference document "
+                 "to make these updates accurately.")
 
 
     # if st.session_state.generated_text:
