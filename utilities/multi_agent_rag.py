@@ -1,4 +1,5 @@
 import os
+import json
 import nest_asyncio
 from pathlib import Path
 from dotenv import load_dotenv
@@ -45,8 +46,8 @@ class MultiAgentRAG:
         outdated_index = VectorStoreIndex(outdated_node)
         reference_index = VectorStoreIndex(reference_node)
 
-        outdated_engine = outdated_index.as_query_engine(similarity_top_k=2)
-        reference_engine = reference_index.as_query_engine(similarity_top_k=2)
+        outdated_engine = outdated_index.as_query_engine()
+        reference_engine = reference_index.as_query_engine()
 
         query_engine_tools = [
             QueryEngineTool(
@@ -70,7 +71,25 @@ class MultiAgentRAG:
         return s_engine
 
     def get_response_from_rag(s_engine, query):
-        print("in get_response_from_rag")
         nest_asyncio.apply()
         response = s_engine.query(query)
-        return response
+
+        print(response)
+
+        json_response = json.loads(str(response))
+        change_dictionary = {}
+        for change in json_response["Changes"]:
+            outdated_step = change["Outdated Step"]
+            updated_step = change["Updated Step"]
+            change_dictionary[outdated_step] = updated_step
+
+        return change_dictionary
+
+    def update_document(updated_text, change_dictionary):
+        for key, value in change_dictionary.items():
+            if (value == "Delete"):
+                updated_text = updated_text.replace(key, "")
+            else:
+                updated_text.replace(key, value)
+
+        return updated_text
