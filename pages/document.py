@@ -2,6 +2,7 @@ import streamlit as st
 
 from utilities.document_processor import DocumentProcessor
 from utilities.multi_agent_rag import MultiAgentRAG
+from utilities.multi_retrieval_rag import MultiRetrievalRag
 
 # Prompt for LLM
 prompt = """
@@ -34,12 +35,12 @@ def main():
     if st.button("Generate Updated Guide"):
         if outdated_guide_file is not None:
             outdated_path = MultiAgentRAG.save_uploaded_file(outdated_guide_file)
-            st.session_state.outdated_node = MultiAgentRAG.load_document(outdated_path)
+            st.session_state.outdated_chunks = MultiRetrievalRag.load_outdated(outdated_path)
 
             if reference_material_file or webpage_link is not None:
                 if reference_material_file:
                     reference_path = MultiAgentRAG.save_uploaded_file(reference_material_file)
-                    st.session_state.reference_node = MultiAgentRAG.load_document(reference_path)
+                    st.session_state.reference_chunks = MultiRetrievalRag.load_reference(reference_path)
 
                 if webpage_link:
                     st.session_state.reference_node = MultiAgentRAG.load_webpage(webpage_link)
@@ -49,24 +50,17 @@ def main():
         else:
             st.error("Please upload outdated material.")
 
-    if 'outdated_node' and 'reference_node' in st.session_state:
-        s_engine = MultiAgentRAG.build_query_engine(st.session_state.outdated_node, st.session_state.reference_node)
+    if 'outdated_chunks' and 'reference_chunks' in st.session_state:
+        subnodes, nodes_map = MultiRetrievalRag.create_subnodes(st.session_state.outdated_chunks)
+        queries = MultiRetrievalRag.create_queries(st.session_state.reference_chunks)
+        vector_index = MultiRetrievalRag.create_vector_index(subnodes)
 
-        query = ("I have a user guide that includes some outdated steps. Your task is to update the entire document, "
-                 "but only change the specific steps that are outdated.  You should refer to the reference document "
-                 "to make these updates accurately. Once what needs to be changed have been detected, output the "
-                 "steps that need updating with the outdated steps"
-                 "directly from outdated guide, and updated steps from reference guide. If a step needs to be "
-                 "deleted, the updated step should be Delete."
-                 "Only return the outdated steps and updated steps in a"
-                 "JSON format: {\"Changes\": [{\"Outdated Step\": {"
-                 "outdated_step}, \"Updated Step\": {updated_step}}]}. Do not return any other text.")
+        for query in queries:
+            retrieved_subnodes = MultiRetrievalRag.retrieve_subnodes(subnodes, query, vector_index)
 
-        response = MultiAgentRAG.get_response_from_rag(s_engine, query)
-        outdated_text = DocumentProcessor.extract_text(outdated_guide_file)
-        updated_text = outdated_text
-        updated_text = MultiAgentRAG.update_document(updated_text, response)
-        print(updated_text)
+            for subnode in retrieved_subnodes:
+                print(subnode.text)
+
 
 
     # if st.session_state.generated_text:

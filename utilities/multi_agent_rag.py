@@ -37,10 +37,8 @@ class MultiAgentRAG:
 
     def load_webpage(url):
         document = SimpleWebPageReader(html_to_text=True).load_data([url])
-        splitter = SemanticSplitterNodeParser(buffer_size=1, breakpoint_percentile_threshold=95,
-                                              embed_model=Settings.embed_model)
-        nodes = splitter.get_nodes_from_documents(document)
-        return nodes
+
+        return document
 
     def build_query_engine(outdated_node, reference_node):
         outdated_index = VectorStoreIndex(outdated_node)
