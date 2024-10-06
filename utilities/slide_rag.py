@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import streamlit as st
 import os
 import re
-import functools
+from pptx.util import Inches, Pt
 from pathlib import Path
 from html import unescape
 from llama_index.core import Settings
@@ -169,10 +169,6 @@ class SlideRag:
         st.session_state.before = before
         st.session_state.after = after
 
-        print("In compare difference")
-        print(f'before: {st.session_state.before}')
-        print(f'after: {st.session_state.after}')
-
     def display_difference(before, after):
         col1, col2 = st.columns(2)
 
@@ -213,8 +209,6 @@ class SlideRag:
 
         st.session_state.after = edited_text.split("\n")
 
-        print("after in save_edit")
-
         i = 1
         new_map = {}
         for before, after in zip(st.session_state.before, st.session_state.after):
@@ -236,15 +230,10 @@ class SlideRag:
 
         st.session_state.contents_map = new_map
 
-        print("contents_map after edit")
-        for key, value in st.session_state.contents_map.items():
-            print(f"Key: {key}")
-            print(f"Value: {value}")
-            print("-------------------------")
-
         SlideRag.compare_difference()
 
     def modify_powerpoint(**kwargs):
+        extra_text = ""
         for key, value in st.session_state.contents_map.items():
             for slide in st.session_state.ppt.slides:
                 for shape in slide.shapes:
@@ -258,11 +247,24 @@ class SlideRag:
                             if paragraph.text != value:
                                 paragraph.text = value
             if "Extra" in key:
-                new_slide_layout = st.session_state.ppt.slide_layouts[1]
-                new_slide = st.session_state.ppt.slides.add_slide(new_slide_layout)
+                extra_text += value + "\n"
 
-                title = new_slide.shapes.title
-                title.text = "New Content"
+        if extra_text:
+            new_slide_layout = st.session_state.ppt.slide_layouts[6]
+            new_slide = st.session_state.ppt.slides.add_slide(new_slide_layout)
 
-                content_shape = new_slide.shapes.placeholders[1]
-                content_shape.text = value
+            left = top = Inches(1)
+            height = st.session_state.ppt.slide_height - 2 * top
+            width = st.session_state.ppt.slide_width - 2 * left
+
+            tx_box = new_slide.shapes.add_textbox(left, top, width, height)
+            tf = tx_box.text_frame
+
+            p = tf.add_paragraph()
+            p.text = "New Content"
+            p.font.size = Pt(40)
+            p.font.bold = True
+
+            p = tf.add_paragraph()
+            p.text = extra_text
+            p.font.size = Pt(12)

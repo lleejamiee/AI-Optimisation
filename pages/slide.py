@@ -16,9 +16,6 @@ def main():
                                                type=["txt", "pdf", "docx", "pptx"])
     webpage_link = st.text_input("Input webpage link")
 
-    st.session_state.before = []
-    st.session_state.after = []
-
     if st.button("Generate Updated Guide"):
         if outdated_guide_file is not None:
             st.session_state.outdated_path = SlideRag.save_uploaded_file(outdated_guide_file)
@@ -41,7 +38,7 @@ def main():
         else:
             st.error("Please upload outdated material.")
 
-    if st.session_state.before and st.session_state.after:
+    if 'before' and 'after' in st.session_state:
         st.subheader("Updated User Guide Content")
 
         if "edit_mode" not in st.session_state:
