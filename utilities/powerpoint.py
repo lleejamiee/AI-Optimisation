@@ -8,7 +8,7 @@ class PowerPoint:
     def update_slide(**kwargs):
         # Upload both outdated user guide and reference material
         outdated_guide_file = st.file_uploader("Choose the outdated user guide document",
-                                               type=["txt", "pdf", "docx", "pptx"])
+                                               type=["pptx"])
         reference_material_file = st.file_uploader("Choose the reference material document",
                                                    type=["txt", "pdf", "docx", "pptx"])
         webpage_link = st.text_input("Input webpage link")
