@@ -132,9 +132,6 @@ class DocumentProcessor:
                 reference_material_file
             )
 
-            st.write(outdated_guide_text)
-            st.write(reference_material_text)
-
             return outdated_guide_text, reference_material_text
         else:
             st.error("Please upload both files.")
