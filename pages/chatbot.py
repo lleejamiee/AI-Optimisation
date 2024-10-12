@@ -1,13 +1,13 @@
 import streamlit as st
 
-from utilities.document_update import run_update_tab
-from utilities.document_create import run_create_tab
+from utilities.chat import run_chatbot
 
 
 def main():
     st.set_page_config(page_title="Chat", layout="wide")
 
-    st.header("AI Chatbot")
+    st.title("AI Chatbot")
+    run_chatbot()
 
 if __name__ == "__main__":
     main()
