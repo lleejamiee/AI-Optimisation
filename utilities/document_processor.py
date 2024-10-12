@@ -13,47 +13,30 @@ import ssl
 import re
 import os
 from dotenv import load_dotenv
+from groq import Groq
 
 load_dotenv()
 
 
 class DocumentProcessor:
-    AOAI_ENDPOINT = os.getenv("AOAI_ENDPOINT")
-    AOAI_KEY = os.getenv("AOAI_KEY")
-    MODEL_NAME = os.getenv("DEPLOYMENT_NAME")
-
-    # Initialize OpenAI client with local inference server (LM Studio)
-    client = AzureOpenAI(
-        api_key=AOAI_KEY,
-        azure_endpoint=AOAI_ENDPOINT,
-        api_version="2024-05-01-preview",
+    client = Groq(
+        api_key=os.environ.get("GROQ_API_KEY"),
     )
 
     def generate_text(prompt, outdated_guide, reference_material):
         history = [
-            {"role": "system", "content": prompt},
-            {
-                "role": "user",
-                "content": f"Outdated User Guide:\n{outdated_guide}\n\nReference Material:\n{reference_material}",
-            },
+            {"role": "system",
+             "content": prompt},
+            {"role": "user",
+             "content": f"Outdated User Guide:\n{outdated_guide}\n\nReference Material:\n{reference_material}"}
         ]
 
-        completion = DocumentProcessor.client.chat.completions.create(
-            model=DocumentProcessor.MODEL_NAME,
+        chat_completion = DocumentProcessor.client.chat.completions.create(
             messages=history,
-            temperature=0.7,
-            stream=True,
+            model="llama3-8b-8192",
         )
 
-        generated_text = ""
-        for chunk in completion:
-            if (
-                chunk.choices
-                and chunk.choices[0]
-                and chunk.choices[0].delta
-                and chunk.choices[0].delta.content
-            ):
-                generated_text += chunk.choices[0].delta.content
+        generated_text = chat_completion.choices[0].message.content
 
         return generated_text
 
@@ -68,13 +51,13 @@ class DocumentProcessor:
             except:
                 return
         elif (
-            file.type
-            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                file.type
+                == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         ):
             file_text = docx2txt.process(file)
         elif (
-            file.type
-            == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                file.type
+                == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
         ):
             presentation = Presentation(file)
             file_text = ""
