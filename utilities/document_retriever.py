@@ -133,12 +133,19 @@ class DocumentRetriever:
 
         return retriever
 
-    def rag_retrieval(self, outdated, reference):
+    def rag_retrieval(self, outdated, reference, additional_reference):
         retrieved = []
 
         retriever = self._rag_components(outdated)
         processed = self._process_reference(reference)
+
+        # Retrieve sections of the document using content from reference material file
         for ref in processed:
+            result = retriever.retrieve(ref)
+            retrieved.append(result)
+
+        # Retrieve sections of the document using additional reference entries
+        for ref in additional_reference:
             result = retriever.retrieve(ref)
             retrieved.append(result)
 
