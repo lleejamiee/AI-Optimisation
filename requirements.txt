@@ -10,11 +10,9 @@ llama-index-retrievers-bm25==0.4.0
 llama-index-readers-web==0.2.4
 llama_parse==0.5.7
 pdf2docx==0.5.8
-pdfplumber==0.11.2
 pdfplumber==0.11.3
 python-dotenv==1.0.1
 python_docx==1.1.2
 python_pptx==1.0.2
 Requests==2.32.3
-streamlit==1.37.0
 streamlit==1.37.1
