@@ -35,7 +35,8 @@ Instructions:
 7. Do not include any explanations, introductions, or additional text.
 """
 
-create_sys_prompt = """You are tasked with creating a new PowerPoint presentation for the user based on the provided reference materials and the prompt input by the user.
+create_sys_prompt = """You are tasked with creating a new PowerPoint presentation for the user based on the provided 
+reference materials and the prompt input by the user.
 
 **Instructions:**
 1. Carefully review all reference materials provided.
@@ -54,6 +55,8 @@ create_sys_prompt = """You are tasked with creating a new PowerPoint presentatio
 4. Do not include any additional content.
 5. Do not include any explanations, introductions, or additional text.
 """
+
+
 class SlideGenerator:
     Settings.llm = Groq(model="llama-3.1-70b-versatile", api_key=os.getenv("GROQ_API_KEY"), temperature=0.4)
 
@@ -79,6 +82,7 @@ class SlideGenerator:
         human_input_mode="NEVER",  # Never ask for human input.
     )
 
+    # Method to save uploaded file locally
     def save_uploaded_file(file):
         save_folder = Path('uploaded_files/')
         save_folder.mkdir(parents=True, exist_ok=True)
@@ -88,27 +92,34 @@ class SlideGenerator:
 
         return save_path
 
+    # Method to parse uploaded file into genAI-native document
     def load_reference(file_path):
         reference = LlamaParse().load_data(file_path)
 
         return reference
 
+    # Method to parse the url link into genAI-native document
     def load_webpage(url):
         document = SimpleWebPageReader(html_to_text=True).load_data([url])
 
         return document
 
     def generate_updated(outdated_file_path, reference):
+        # Open outdated presentation file
         ppt = Presentation(outdated_file_path)
 
+        # Map stores key, value. Key is the outdated content, value is updated content. If nothing is updated,
+        # the key and the value will have the same content.
         contents_map = {}
 
+        # Prepare system message for LLM
         review_system_message = {"content": review_sys_prompt, "role": "system"}
         generate_system_message = {"content": generate_sys_prompt, "role": "system"}
 
+        # Iterate through each page in outdated PowerPoint
         for slide in ppt.slides:
             for shape in slide.shapes:
-                if shape == slide.shapes.title:
+                if shape == slide.shapes.title:  # Skip if it's a heading
                     continue
 
                 if shape.has_text_frame:
@@ -119,13 +130,16 @@ class SlideGenerator:
                     {reference} If nothing needs to be changed, display 'no'. If the content needs to be updated or 
                     new material should be added, display 'yes'"""
 
+                    # LLM will review if the current page needs to be updated
                     review_user_message = {"content": review_context, "role": "user"}
                     reply = SlideGenerator.agent.generate_reply(messages=[review_system_message, review_user_message])
 
+                    # Iterate through each paragraph in the current page
                     for paragraph in shape.text_frame.paragraphs:
                         if not paragraph.text.strip():
                             continue
 
+                        # Store current paragraph's content as both key, and value
                         contents_map[paragraph.text] = paragraph.text
 
                         if reply:
@@ -142,18 +156,23 @@ class SlideGenerator:
                                 or if the sentence hasn't been provided, display 'n/a'. If the given sentence needs 
                                 to be removed, display 'remove'."""
 
+                                # LLM will generate a reply based on the current page's content, and the reference
+                                # material
                                 generate_user_message = {"content": generate_context, "role": "user"}
                                 reply = SlideGenerator.agent.generate_reply(messages=[generate_system_message, generate_user_message])
 
                                 if reply:
                                     if reply['content'] != "n/a" and reply['content'] != "remove":
+                                        # Current paragraph is mapped to the updated content
                                         contents_map[paragraph.text] = reply['content']
+                                        # PowerPoint content is also updated
                                         paragraph.text = paragraph.text.replace(paragraph.text, reply['content'])
                                     if reply['content'] == "remove":
                                         paragraph.text = paragraph.text.replace(paragraph.text, "")
 
         return ppt, contents_map
 
+    # Method to generate a new PowerPoint document
     def generate_new(reference_docs, prompt):
         generate_sys_message = {"content": create_sys_prompt, "role": "system"}
 
@@ -166,6 +185,7 @@ class SlideGenerator:
 
         return reply
 
+    # Method to extract contents from JSON
     def extract_json(reply):
         json_rsp = json.loads(reply['content'])
         slide_data = json_rsp.get("slides")
