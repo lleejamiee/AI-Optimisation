@@ -1,5 +1,6 @@
 import streamlit as st
 from utilities.document_retriever import DocumentRetriever
+from utilities.document_updater import prepare_updated_document, temp_file
 import difflib
 
 
@@ -32,6 +33,7 @@ def prev_item(ref_index):
 
 def remove_row(index):
     st.session_state.retrieved.pop(index)
+
 
 def update_sections():
     doc_retriever = DocumentRetriever()
@@ -89,6 +91,8 @@ def run_update_tab():
         with st.container(border=True):
             st.subheader("Upload Training Material")
             outdated_guide_file = st.file_uploader("Choose the outdated user guide document", type=["docx", "pdf"])
+            if outdated_guide_file is not None:
+                st.session_state.outdated_guide_file_path = temp_file(outdated_guide_file)
         with st.container(border=True):
             st.subheader("Upload Reference Material")
             reference_material_file = st.file_uploader("Choose the reference material document", type=["docx", "pdf"])
@@ -99,7 +103,7 @@ def run_update_tab():
                 # Text input field for additional entries
                 with col1:
                     st.text_input(label="Enter updates for training material", key="new_entry",
-                                  label_visibility="collapsed", on_change=add_entry)
+                                  label_visibility="collapsed")
                 with col2:
                     st.button("Add Entry", on_click=add_entry, use_container_width=True)
 
@@ -206,3 +210,19 @@ def run_update_tab():
                     st.write(highlighted_updated, unsafe_allow_html=True)
                 if section != st.session_state.updated_sections[-1]:
                     st.write("---")
+
+        # Button to update document content
+        if st.button("Generate Updated Document"):
+            if st.session_state.outdated_guide_file_path:
+                updated_file_data, updated_filename = prepare_updated_document(
+                    st.session_state.outdated_guide_file_path,
+                    st.session_state.updated_sections
+                )
+
+                # Button to download updated file
+                st.download_button(
+                    label="Download Updated Document",
+                    data=updated_file_data,
+                    file_name=updated_filename,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )

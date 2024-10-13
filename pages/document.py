@@ -1,7 +1,7 @@
 import streamlit as st
 
-from utilities.document_update import run_update_tab
-from utilities.document_create import run_create_tab
+from utilities.document_update_tab import run_update_tab
+from utilities.document_create_tab import run_create_tab
 
 
 def main():
@@ -10,7 +10,15 @@ def main():
     tab1, tab2 = st.tabs(["Update", "Create"])
 
     with tab1:
-        st.header("Update Document")
+        col1, col2, col3 = st.columns([2, 8, 1])
+        with col1:
+            st.header("Update Document")
+
+        with col3:
+            if st.button("Refresh", use_container_width=True):
+                st.session_state.clear()
+                st.rerun()
+
         run_update_tab()
 
     with tab2:
