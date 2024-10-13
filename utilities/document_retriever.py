@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import re
-from typing import List, Dict
 from docx import Document
 from llama_index.core import Settings, VectorStoreIndex, Document as LlamaDocument
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -11,6 +10,7 @@ from llama_index.core.tools import RetrieverTool
 from llama_index.core.retrievers import VectorIndexRetriever, RouterRetriever
 from llama_index.retrievers.bm25 import BM25Retriever
 from llama_index.core.node_parser import SentenceSplitter
+from utilities.prompts import update_docs_system
 import pdf2docx
 from dotenv import load_dotenv
 
@@ -133,20 +133,35 @@ class DocumentRetriever:
 
         return retriever
 
-    def rag_retrieval(self, outdated, reference, additional_reference):
-        retrieved = []
+    def rag_retrieval(self, outdated, reference_material, additional_search_text):
+        context_pairs = []
 
         retriever = self._rag_components(outdated)
-        processed = self._process_reference(reference)
+        search_text = self._process_reference(reference_material)
 
-        # Retrieve sections of the document using content from reference material file
-        for ref in processed:
-            result = retriever.retrieve(ref)
-            retrieved.append(result)
+        for reference in search_text + additional_search_text:
+            retrieved = retriever.retrieve(reference)
+            context_pairs.append({'reference': reference, 'retrieved': retrieved})
 
-        # Retrieve sections of the document using additional reference entries
-        for ref in additional_reference:
-            result = retriever.retrieve(ref)
-            retrieved.append(result)
+        return context_pairs
 
-        return retrieved
+    def update_sections(self, sections_to_update):
+        updated_sections = []
+        for section in sections_to_update:
+            reference = section['reference']
+            retrieved = section['retrieved']
+
+            # Construct the prompt by formatting the update_docs_system string
+            prompt = update_docs_system.format(reference=reference, retrieved=retrieved)
+
+            # Use the LLM to generate the updated content
+            response = Settings.llm.complete(prompt)
+            updated_content = response.text.strip()
+
+            updated_sections.append({
+                'reference': reference,
+                'original_content': retrieved.text,
+                'updated_content': updated_content
+            })
+
+        return updated_sections
