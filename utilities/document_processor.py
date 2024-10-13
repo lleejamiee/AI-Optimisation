@@ -1,5 +1,4 @@
 from urllib.request import urlopen
-from openai import AzureOpenAI
 from pptx import Presentation
 from bs4 import BeautifulSoup
 from html import unescape
