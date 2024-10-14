@@ -6,6 +6,7 @@ import streamlit as st
 
 
 class SlideProcessor:
+    # Method to compare differences between the before and after contents
     def compare_difference(**kwargs):
         before = []
         after = []
@@ -38,6 +39,7 @@ class SlideProcessor:
         st.session_state.before = before
         st.session_state.after = after
 
+    # Method to display the differences between the before and after contents
     def display_difference(before, after):
         col1, col2 = st.columns(2)
 
@@ -49,6 +51,7 @@ class SlideProcessor:
             st.subheader("Updated User Guide")
             st.markdown("<br>".join(after), unsafe_allow_html=True)
 
+    # Method to remove the HTML tags for editing
     def strip_html_tags(**kwargs):
         clean_text = ""
         for text in st.session_state.after:
@@ -58,6 +61,7 @@ class SlideProcessor:
 
         return clean_text
 
+    # Method to allow users to edit the generated contents
     def edit_output(**kwargs):
         clean_text = SlideProcessor.strip_html_tags()
 
@@ -72,6 +76,7 @@ class SlideProcessor:
             SlideProcessor.save_edit(edited_text)
             st.rerun()
 
+    # Method to save the edited text
     def save_edit(edited_text):
         st.session_state.edit_mode = False
 
@@ -79,19 +84,22 @@ class SlideProcessor:
 
         i = 1
         new_map = {}
+        # Iterate through the before and after contents
         for before, after in zip(st.session_state.before, st.session_state.after):
-            if not after.strip():
+            if not after.strip():  # Handle when the user added new lines
                 new_map[f'New Line {i}'] = "\n"
                 i += 1
             else:
                 new_map[before] = after
 
         i = 1
+        # Handle f the after content is longer than before content
         if len(st.session_state.after) > len(st.session_state.before):
             for extra_text in st.session_state.after[len(st.session_state.before):]:
                 new_map[f'Extra {i}'] = extra_text
                 i += 1
 
+        # Handle if the before content is longer than the after content
         if len(st.session_state.before) > len(st.session_state.after):
             for extra_before_text in st.session_state.before[len(st.session_state.after):]:
                 new_map[extra_before_text] = ""
@@ -100,23 +108,26 @@ class SlideProcessor:
 
         SlideProcessor.compare_difference()
 
+    # Method to modify the outdated PowerPoint with new content
     def modify_powerpoint(**kwargs):
         extra_text = ""
-        for key, value in st.session_state.contents_map.items():
-            for slide in st.session_state.ppt.slides:
+        for key, value in st.session_state.contents_map.items():  # Iterate through the before and after
+            for slide in st.session_state.ppt.slides:  # Iterate through the outdated slide
                 for shape in slide.shapes:
                     if not shape.has_text_frame:
                         continue
                     for paragraph in shape.text_frame.paragraphs:
                         if key in paragraph.text:
-                            if "New Line" in key:
+                            if "New Line" in key:  # Handle if the user added new line
                                 new_paragraph = shape.text_frame.add_paragraph()
                                 new_paragraph.text = ""
-                            if paragraph.text != value:
+                            if paragraph.text != value:  # Handle updated content
                                 paragraph.text = value
+            # When the length of the updated material is longer than outdated, store them separately
             if "Extra" in key:
                 extra_text += value + "\n"
 
+        # Append all the extra material into one page at the end of the PowerPoint document
         if extra_text:
             new_slide_layout = st.session_state.ppt.slide_layouts[6]
             new_slide = st.session_state.ppt.slides.add_slide(new_slide_layout)
@@ -137,6 +148,7 @@ class SlideProcessor:
             p.text = extra_text
             p.font.size = Pt(12)
 
+    # Method to convert JSON into a list
     def json_to_string(**kwargs):
         all_content = []
 
@@ -146,6 +158,7 @@ class SlideProcessor:
 
         return all_content
 
+    # Method to create new PowerPoint document
     def create_slides(**kwargs):
         ppt = Presentation()
 
