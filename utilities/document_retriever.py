@@ -133,13 +133,18 @@ class DocumentRetriever:
 
         return retriever
 
-    def rag_retrieval(self, outdated, reference_material, additional_search_text):
+    def rag_retrieval(self, outdated, reference_material=None, additional_search_text=None):
         context_pairs = []
+        search_text = []
 
         retriever = self._rag_components(outdated)
-        search_text = self._process_reference(reference_material)
 
-        for reference in search_text + additional_search_text:
+        if reference_material is not None:
+            search_text.extend(self._process_reference(reference_material))
+        if additional_search_text is not None:
+            search_text.extend(additional_search_text)
+
+        for reference in search_text:
             retrieved = retriever.retrieve(reference)
             context_pairs.append({'reference': reference, 'retrieved': retrieved})
 

@@ -5,9 +5,9 @@ import difflib
 
 
 @st.cache_data
-def cached_rag_retrieval(outdated_guide, reference_material, additional_reference):
+def cached_rag_retrieval(outdated_guide, reference_material=None, additional_search_text=None):
     doc_generator = DocumentRetriever()
-    return doc_generator.rag_retrieval(outdated_guide, reference_material, additional_reference)
+    return doc_generator.rag_retrieval(outdated_guide, reference_material, additional_search_text)
 
 
 def add_entry():
@@ -83,8 +83,8 @@ def run_update_tab():
         st.session_state.retrieved = None
     if 'show_upload' not in st.session_state:
         st.session_state.show_upload = True
-
-    st.session_state.setdefault('additional_entries', [])
+    if 'additional_entries' not in st.session_state:
+        st.session_state.additional_entries = []
 
     if st.session_state.show_upload:
         # File upload section
@@ -109,7 +109,7 @@ def run_update_tab():
 
                 # Display current additional entries if there are any
                 if st.session_state.additional_entries:
-                    st.write("Current additional entries:")
+                    st.write("Current reference entries:")
                     for i, entry in enumerate(st.session_state.additional_entries):
                         col1, col2 = st.columns([8, 1])
                         with col1:
@@ -125,16 +125,16 @@ def run_update_tab():
             if outdated_guide_file is None:
                 st.error("Please upload outdated material.")
                 return
-            elif reference_material_file is None:
-                st.error("Please upload reference material")
+            elif reference_material_file is None and not st.session_state.additional_entries:
+                st.error("Please include reference material")
                 return
             else:
                 with st.spinner("Retrieving Sections..."):
                     # Perform retrieval and store in session state
                     st.session_state.retrieved = cached_rag_retrieval(
                         outdated_guide_file,
-                        reference_material_file,
-                        st.session_state.additional_entries
+                        reference_material=reference_material_file,
+                        additional_search_text=st.session_state.additional_entries
                     )
                 # Update to hide file upload
                 st.session_state.show_upload = False
