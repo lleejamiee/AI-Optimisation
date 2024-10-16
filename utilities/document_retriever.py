@@ -25,6 +25,7 @@ class DocumentRetriever:
         os.getenv("LLAMA_CLOUD_API_KEY")
         os.getenv("GROQ_API_KEY")
 
+    # Process reference material and split into paragraphs
     def _process_reference(self, file_path):
         reference_file = self._save_uploaded_file(file_path)
         reference = LlamaParse(num_workers=8, split_by_page=0, result_type="text").load_data(reference_file)
@@ -32,6 +33,7 @@ class DocumentRetriever:
 
         return reference_split
 
+    # Save uploaded file to a local directory
     def _save_uploaded_file(self, file):
         save_folder = Path('uploaded_files/')
         save_folder.mkdir(parents=True, exist_ok=True)
@@ -42,10 +44,12 @@ class DocumentRetriever:
 
         return save_path
 
+    # Split text into paragraphs for reference material
     def _split_into_paragraphs(self, text):
         paragraphs = text.split('\n\n')
         return [para.strip() for para in paragraphs if para.strip()]
 
+    # Split document text into sections based on headings
     def _process_document(self, file_path):
         saved_file = self._save_uploaded_file(file_path)
         extension = saved_file.suffix.lower()
@@ -59,12 +63,14 @@ class DocumentRetriever:
 
         return self._split_into_sections(doc_text)
 
+    # Convert PDF to DOCX format
     def _convert_to_docx(self, pdf_file):
         docx_file = pdf_file.with_suffix(".docx")
         pdf2docx.parse(str(pdf_file), str(docx_file))
 
         return docx_file
 
+    # Split document text into sections based on headings
     def _split_into_sections(self, doc_text):
         sections = []
 
@@ -84,6 +90,7 @@ class DocumentRetriever:
 
         return sections
 
+    # Create objects from sections
     def _create_documents(self, sections):
         documents = []
         for section in sections:
@@ -93,6 +100,7 @@ class DocumentRetriever:
 
         return documents
 
+    # Create vector index with documents
     def _create_index(self, documents, vector_index=None):
         if vector_index is None:
             vector_index = VectorStoreIndex([])
@@ -101,6 +109,7 @@ class DocumentRetriever:
 
         return vector_index
 
+    # Create a router retriever with vector and BM25 retrievers
     def _create_retriever(self, documents, vector_index):
         parser = SentenceSplitter()
         nodes = parser.get_nodes_from_documents(documents)
@@ -125,6 +134,7 @@ class DocumentRetriever:
 
         return router_retriever
 
+    # RAG pipeline
     def _rag_components(self, file_path):
         sections = self._process_document(file_path)
         documents = self._create_documents(sections)
@@ -133,6 +143,7 @@ class DocumentRetriever:
 
         return retriever
 
+    # Perform retrieval using reference material and additional entries
     def rag_retrieval(self, outdated, reference_material=None, additional_search_text=None):
         context_pairs = []
         search_text = []
@@ -150,6 +161,7 @@ class DocumentRetriever:
 
         return context_pairs
 
+    # Update the sections of the document using an LLM with provided context
     def update_sections(self, sections_to_update):
         updated_sections = []
         for section in sections_to_update:

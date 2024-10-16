@@ -22,12 +22,14 @@ class ChatRAG:
 
         os.getenv("GROQ_API_KEY")
 
+    # Process uploaded document and load its content
     def _process_document(self, file_path):
         saved_file = self._save_uploaded_file(file_path)
         document = SimpleDirectoryReader(input_files=[saved_file]).load_data()
 
         return document
 
+    # Save uploaded file to a local directory
     def _save_uploaded_file(self, file):
         save_folder = Path('uploaded_files/')
         save_folder.mkdir(parents=True, exist_ok=True)
@@ -37,6 +39,7 @@ class ChatRAG:
 
         return save_path
 
+    # Split document into chunks for indexing
     def _create_chunks(self, document):
         splitter = SentenceSplitter(chunk_size=512, chunk_overlap=128)
         chunks = splitter.get_nodes_from_documents(document)
@@ -44,12 +47,14 @@ class ChatRAG:
 
         return chunks
 
+    # Create a vector index and retriever from document chunks
     def _create_retriever(self, chunks):
         vector_index = VectorStoreIndex(chunks)
         vector_retriever = VectorIndexRetriever(vector_index)
 
         return vector_retriever
 
+    # RAG pipeline
     def create_rag_retriever(self, file_path):
         document = self._process_document(file_path)
         chunks = self._create_chunks(document)
