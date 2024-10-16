@@ -70,7 +70,8 @@ class SlideGenerator:
             "presence_penalty": 0.2,
             "seed": 42,
             "temperature": 0,
-            "top_p": 0.2
+            "top_p": 0.2,
+            "type": "json_object"
         }
     ]
 

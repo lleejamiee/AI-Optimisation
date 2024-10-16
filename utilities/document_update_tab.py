@@ -95,7 +95,7 @@ def run_update_tab():
                 st.session_state.outdated_guide_file_path = temp_file(outdated_guide_file)
         with st.container(border=True):
             st.subheader("Upload Reference Material")
-            reference_material_file = st.file_uploader("Choose the reference material document", type=["docx", "pdf"])
+            reference_material_file = st.file_uploader("Choose the reference material document", type=["docx", "pdf", "txt"])
 
             # Additional entries for Reference Material
             with st.expander("Add Reference Entry"):
@@ -127,7 +127,6 @@ def run_update_tab():
                 return
             elif reference_material_file is None and not st.session_state.additional_entries:
                 st.error("Please include reference material")
-                return
             else:
                 with st.spinner("Retrieving Sections..."):
                     # Perform retrieval and store in session state
