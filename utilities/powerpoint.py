@@ -69,6 +69,7 @@ class PowerPoint:
             # When the download button is clicked, the PowerPoint document gets downloaded
             st.download_button(
                 "Download",
+                key="update",
                 file_name="updated_guide.pptx",
                 data=binary_output,
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -79,7 +80,8 @@ class PowerPoint:
         # Users can upload multiple files as reference material
         uploaded_files = st.file_uploader("Upload files to generate a new PowerPoint", accept_multiple_files=True)
         # Users can enter prompt to give the LLM more specific instruction
-        prompt = st.text_input("Enter your prompt")
+        prompt = st.text_input("Enter your prompt\n\nExample: Create a 10-slide presentation on the given content. Use "
+                               "a friendly and engaging tone")
 
         # When 'Generate New PowerPoint' button is clicked
         if st.button("Generate New PowerPoint"):
@@ -118,6 +120,7 @@ class PowerPoint:
             # When the download button is clicked, the PowerPoint document gets downloaded
             st.download_button(
                 "Download",
+                key="create",
                 file_name="updated_guide.pptx",
                 data=binary_output,
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"

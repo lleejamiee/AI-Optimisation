@@ -95,15 +95,18 @@ def run_update_tab():
                 st.session_state.outdated_guide_file_path = temp_file(outdated_guide_file)
         with st.container(border=True):
             st.subheader("Upload Reference Material")
-            reference_material_file = st.file_uploader("Choose the reference material document", type=["docx", "pdf", "txt"])
+            reference_material_file = st.file_uploader("Choose the reference material document",
+                                                       type=["docx", "pdf", "txt"])
 
             # Additional entries for Reference Material
             with st.expander("Add Reference Entry"):
                 col1, col2 = st.columns([8, 1])
                 # Text input field for additional entries
                 with col1:
-                    st.text_input(label="Enter updates for training material", key="new_entry",
-                                  label_visibility="collapsed")
+                    st.text_input(label="Example: Implement digital PDP system accessible through HR portal with "
+                                        "goal-setting features and automatic review reminders.",
+                                  value="",
+                                  key="new_entry")
                 with col2:
                     st.button("Add Entry", on_click=add_entry, use_container_width=True)
 

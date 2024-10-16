@@ -34,8 +34,8 @@ def run_chatbot():
 
     # Upload file
     with st.container(border=True):
-        st.subheader("Upload Training Material")
-        outdated_guide_file = st.file_uploader("Choose the outdated user guide document", type=["docx", "pdf"])
+        st.subheader("Upload Document")
+        outdated_guide_file = st.file_uploader("", type=["docx", "pdf"], label_visibility="collapsed")
 
     if st.button("Upload"):
         if outdated_guide_file is None:
@@ -58,7 +58,7 @@ def run_chatbot():
             st.markdown(message["content"])
 
     # Accept user input
-    if prompt := st.chat_input("What is up?"):
+    if prompt := st.chat_input("Enter Query"):
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
 
