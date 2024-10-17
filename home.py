@@ -72,16 +72,3 @@ with st.expander("How to Use the Chatbot"):
     5. Ask follow-up questions as needed
     """)
 
-# FAQs
-st.header("Frequently Asked Questions")
-faq_data = {
-    "What file formats are supported?": "We support .docx, .pdf, and .pptx files.",
-    "How accurate is the AI-generated content?": "While highly accurate, always review AI suggestions for your specific needs.",
-    "Can I use this for sensitive documents?": "We recommend against uploading sensitive or confidential information.",
-    "What should I include in my reference material?": "Include specific instructions, desired changes, new content, or any context that helps explain the updates you need.",
-    "How do I report issues or provide feedback?": "Use the 'Contact Support' link in the footer of the application."
-}
-
-# Placeholder for Limitations
-st.header("Limitations")
-st.info("Information about system limitations will be provided here in the future.")

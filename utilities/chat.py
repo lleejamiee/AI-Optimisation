@@ -37,12 +37,11 @@ def run_chatbot():
         st.subheader("Upload Document")
         outdated_guide_file = st.file_uploader("", type=["docx", "pdf"], label_visibility="collapsed")
 
-    if st.button("Upload"):
-        if outdated_guide_file is None:
-            st.error("Please upload a file")
-        else:
+    if outdated_guide_file is not None:
+        if st.button("Upload"):
             clear_chat_history()
-            st.session_state['rag'].create_rag_retriever(outdated_guide_file)
+            with st.spinner("Retrieving Sections..."):
+                st.session_state['rag'].create_rag_retriever(outdated_guide_file)
 
     # Set a default model
     if "groq_model" not in st.session_state:
